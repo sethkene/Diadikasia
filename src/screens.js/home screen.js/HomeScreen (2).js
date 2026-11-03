@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { categoriesFor, categoryLabel } from '../data/categories';
 import { procedures } from '../data/procedures';
 import { colors, font, radius, spacing } from '../theme';
 
@@ -15,13 +16,6 @@ const DISCIPLINES = [
 const REGIONS = [
   { key: 'african', label: 'African', flag: '🌍' },
   { key: 'european', label: 'European', flag: '🇪🇺' },
-];
-const CATEGORIES = [
-  { key: 'all', label: 'All' },
-  { key: 'clinical', label: 'Clinical Care' },
-  { key: 'emergency', label: 'Emergency' },
-  { key: 'pediatric', label: 'Pediatrics' },
-  { key: 'surgical', label: 'Surgical Tech' },
 ];
 // Sample "continue learning" progress. Later this comes from the user's saved progress.
 const CONTINUE = [
@@ -47,6 +41,7 @@ export default function HomeScreen() {
     [discipline, category]
   );
   const regionInfo = REGIONS.find((r) => r.key === region);
+  const chips = [{ key: 'all', short: 'All' }, ...categoriesFor(discipline)];
 
   return (
     <View style={s.screen}>
@@ -83,7 +78,10 @@ export default function HomeScreen() {
             return (
               <Pressable
                 key={d.key}
-                onPress={() => setDiscipline(d.key)}
+                onPress={() => {
+                  setDiscipline(d.key);
+                  setCategory('all');
+                }}
                 style={[s.switchBtn, active && s.switchBtnActive]}
               >
                 {d.icon ? (
@@ -135,7 +133,7 @@ export default function HomeScreen() {
           </Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.lg }}>
-          {CATEGORIES.map((c) => {
+          {chips.map((c) => {
             const active = category === c.key;
             return (
               <Pressable
@@ -143,7 +141,7 @@ export default function HomeScreen() {
                 onPress={() => setCategory(c.key)}
                 style={[s.chip, active && s.chipActive]}
               >
-                <Text style={[s.chipText, active && s.chipTextActive]}>{c.label}</Text>
+                <Text style={[s.chipText, active && s.chipTextActive]}>{c.short}</Text>
               </Pressable>
             );
           })}
@@ -161,7 +159,7 @@ export default function HomeScreen() {
                 <View style={s.rowBetween}>
                   <View style={[s.contTag, amber ? s.contTagAmber : s.contTagTeal]}>
                     <Text style={[s.contTagText, { color: amber ? colors.amber[300] : colors.teal[300] }]}>
-                      {p.category.charAt(0).toUpperCase() + p.category.slice(1)}
+                      {categoryLabel(p.category)}
                     </Text>
                   </View>
                   <View style={s.rowCenter}>
@@ -199,7 +197,7 @@ export default function HomeScreen() {
                 <Image source={{ uri: item.thumbnail }} style={s.thumb} resizeMode="cover" />
                 <View style={s.thumbShade} />
                 <View style={s.catTag}>
-                  <Text style={s.catTagText}>{item.category.toUpperCase()}</Text>
+                  <Text style={s.catTagText}>{categoryLabel(item.category).toUpperCase()}</Text>
                 </View>
                 <View style={s.durTag}>
                   <Ionicons name="play" size={9} color={colors.teal[400]} />
